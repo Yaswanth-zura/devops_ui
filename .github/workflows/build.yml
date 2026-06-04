@@ -32,6 +32,8 @@ jobs:
         run: npm run build
 
   build-and-push:
+        
+    needs: pre-build
 
     runs-on: ubuntu-latest
 
