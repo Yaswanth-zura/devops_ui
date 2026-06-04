@@ -10,6 +10,27 @@ on:
 
 jobs:
 
+
+  pre-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+            node-version: 20
+
+      - name: Install Dependencies
+        run: npm install --force
+
+      - name: Application Build Test
+        run: npm run build
+
   build-and-push:
 
     runs-on: ubuntu-latest
