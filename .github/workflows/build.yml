@@ -61,10 +61,10 @@ jobs:
       - name: Build UI Image
         run: |
           docker build \
-          -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v1 \
+          -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v2 \
           .
 
       - name: Push UI Image
         run: |
           docker push \
-          663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v1
+          663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v2
