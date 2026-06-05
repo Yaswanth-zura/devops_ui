@@ -1,4 +1,4 @@
-name: ui Build And Push
+name: UI Build And Push
 
 on:
 
