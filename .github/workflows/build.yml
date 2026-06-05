@@ -1,4 +1,4 @@
-name: UI Build And Push
+name: ui Build And Push
 
 on:
 
@@ -61,10 +61,25 @@ jobs:
       - name: Build UI Image
         run: |
           docker build \
-          -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v2 \
+          -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:${{ github.run_number }} \
           .
 
       - name: Push UI Image
         run: |
           docker push \
-          663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v2
+          663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:${{ github.run_number }}
+
+
+      - name: Trigger Deployment Repository
+        run: |
+          curl -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: token ${{ secrets.DEPLOYMENT_PAT }}" \
+          https://api.github.com/repos/Yaswanth-zura/deployment-repo/dispatches \
+          -d '{
+            "event_type":"deploy-ui",
+            "client_payload":{
+              "service":"ui",
+              "tag":"${{ github.run_number }}"
+            }
+          }'
