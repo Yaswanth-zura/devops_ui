@@ -1,0 +1,21 @@
+services:
+
+  ui:
+    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:${UI_TAG}
+
+    container_name: ui
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      WDS_SOCKET_PORT: 8080
+
+    networks:
+      - micro-net
+
+networks:
+  micro-net:
+    external: true

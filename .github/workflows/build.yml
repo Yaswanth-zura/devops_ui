@@ -69,17 +69,32 @@ jobs:
           docker push \
           663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:${{ github.run_number }}
 
+      - name: Deploy UI To EC2
+        uses: appleboy/ssh-action@v1.0.3
 
-      - name: Trigger Deployment Repository
-        run: |
-          curl -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: token ${{ secrets.DEPLOYMENT_PAT }}" \
-          https://api.github.com/repos/Yaswanth-zura/deployment-repo/dispatches \
-          -d '{
-            "event_type":"deploy-ui",
-            "client_payload":{
-              "service":"ui",
-              "tag":"${{ github.run_number }}"
-            }
-          }'
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          script: |
+
+            cd ~/ui-deployment
+
+            sed -i "s/^UI_TAG=.*/UI_TAG=${{ github.run_number }}/" .env
+
+            echo "===== UPDATED ENV ====="
+            cat .env
+
+            aws ecr get-login-password \
+            --region ap-south-2 \
+            | docker login \
+            --username AWS \
+            --password-stdin \
+            663566123253.dkr.ecr.ap-south-2.amazonaws.com
+
+            docker compose pull
+
+            docker compose up -d
+
+            docker ps
