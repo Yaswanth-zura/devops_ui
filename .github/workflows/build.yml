@@ -69,6 +69,14 @@ jobs:
           docker push \
           663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:${{ github.run_number }}
 
+
+  deploy:
+    needs: build-and-push        
+
+    runs-on: ubuntu-latest
+
+    steps:
+      
       - name: Deploy UI To EC2
         uses: appleboy/ssh-action@v1.0.3
 
