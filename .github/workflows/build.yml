@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      
+
       - name: Deploy UI To EC2
         uses: appleboy/ssh-action@v1.0.3
 
@@ -87,7 +87,7 @@ jobs:
 
           script: |
 
-            cd ~/ui-deployment
+            cd ~/devops_ui
 
             sed -i "s/^UI_TAG=.*/UI_TAG=${{ github.run_number }}/" .env
 
@@ -101,8 +101,8 @@ jobs:
             --password-stdin \
             663566123253.dkr.ecr.ap-south-2.amazonaws.com
 
-            docker compose pull
+            docker compose pull ui
 
-            docker compose up -d
+            docker compose up -d ui
 
             docker ps
