@@ -103,6 +103,6 @@ jobs:
 
             docker compose pull ui
 
-            docker compose up -d ui
+            docker compose up -d --force-recreate ui
 
             docker ps
