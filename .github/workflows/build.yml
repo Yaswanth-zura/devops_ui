@@ -106,3 +106,45 @@ jobs:
             docker compose up -d --force-recreate ui
 
             docker ps
+
+
+  notify:
+
+    if: always()
+
+    needs:
+      - deploy
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-2
+
+      - name: Send SNS Notification
+
+        run: |
+
+          STATUS="${{ needs.deploy.result }}"
+
+          aws sns publish \
+          --region ap-south-2 \
+          --topic-arn "${{ secrets.SNS_TOPIC_ARN }}" \
+          --subject "UI Deployment ${STATUS}" \
+          --message "
+          Repository : devops_ui
+
+          Build Number : ${{ github.run_number }}
+
+          Status : ${STATUS}
+
+          Commit : ${{ github.sha }}
+
+          Workflow : ${{ github.workflow }}
+          "
