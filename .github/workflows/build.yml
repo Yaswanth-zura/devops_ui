@@ -113,6 +113,8 @@ jobs:
     if: always()
 
     needs:
+      - pre-build
+      - build-and-push
       - deploy
 
     runs-on: ubuntu-latest
@@ -132,19 +134,57 @@ jobs:
         run: |
 
           STATUS="${{ needs.deploy.result }}"
+          BUILD_STATUS="${{ needs.pre-build.result }}"
+          PUSH_STATUS="${{ needs.build-and-push.result }}"
+          DEPLOY_STATUS="${{ needs.deploy.result }}"
+          if [ "$BUILD_STATUS" != "success" ]; then
+            FAILURE_POINT="Pre-Build"
+          elif [ "$PUSH_STATUS" != "success" ]; then
+            FAILURE_POINT="Build-And-Push"
+          elif [ "$DEPLOY_STATUS" != "success" ]; then
+            FAILURE_POINT="Deploy"
+          else
+            FAILURE_POINT="None"
+          fi
+
+          if [ "$BUILD_STATUS" = "success" ] && \
+            [ "$PUSH_STATUS" = "success" ] && \
+            [ "$DEPLOY_STATUS" = "success" ]; then
+
+            OVERALL_STATUS="SUCCESS"
+
+          else
+
+            OVERALL_STATUS="FAILURE"
+
+          fi
 
           aws sns publish \
           --region ap-south-2 \
           --topic-arn "${{ secrets.SNS_TOPIC_ARN }}" \
-          --subject "UI Deployment ${STATUS}" \
+          --subject "UI Deployment ${OVERALL_STATUS}" \
           --message "
-          Repository : devops_ui
+          Repository      : devops_ui
 
-          Build Number : ${{ github.run_number }}
+          Build Number    : ${{ github.run_number }}
 
-          Status : ${STATUS}
+          Overall Status  : ${OVERALL_STATUS}
 
-          Commit : ${{ github.sha }}
+          Pre-Build       : ${BUILD_STATUS}
 
-          Workflow : ${{ github.workflow }}
+          Build-And-Push  : ${PUSH_STATUS}
+
+          Deploy          : ${DEPLOY_STATUS}
+
+          Failure Point   : ${FAILURE_POINT}
+
+          Commit          : ${{ github.sha }}
+
+          Workflow        : ${{ github.workflow }}
+
+          Repository URL  :
+          https://github.com/${{ github.repository }}
+
+          Run URL :
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           "
