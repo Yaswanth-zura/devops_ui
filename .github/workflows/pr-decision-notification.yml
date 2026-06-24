@@ -1,0 +1,57 @@
+name: PR Decision Notification
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+
+  notify:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Configure AWS Credentials
+
+        uses: aws-actions/configure-aws-credentials@v4
+
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-2
+
+      - name: Notify Decision
+
+        run: |
+
+          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+
+            STATUS="APPROVED AND MERGED"
+
+          else
+
+            STATUS="REJECTED / CLOSED"
+
+          fi
+
+          aws sns publish \
+          --region ap-south-2 \
+          --topic-arn "${{ secrets.SNS_TOPIC_ARN }}" \
+          --subject "Pull Request Decision" \
+          --message "
+          Repository : ${{ github.repository }}
+
+          Pull Request :
+          #${{ github.event.pull_request.number }}
+
+          Status :
+          ${STATUS}
+
+          Closed By :
+          ${{ github.actor }}
+
+          PR URL :
+          ${{ github.event.pull_request.html_url }}
+          "
