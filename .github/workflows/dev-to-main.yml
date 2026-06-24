@@ -33,3 +33,39 @@ jobs:
             --title "Dev To Main Merge Request" \
             --body "Automated PR generated from dev branch." \
           || echo "PR already exists"
+
+
+      - name: Configure AWS Credentials
+
+        uses: aws-actions/configure-aws-credentials@v4
+
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-2
+
+      - name: Notify Manager
+
+        run: |
+
+          aws sns publish \
+          --region ap-south-2 \
+          --topic-arn "${{ secrets.SNS_TOPIC_ARN }}" \
+          --subject "PR Approval Required" \
+          --message "
+          Repository : ${{ github.repository }}
+
+          Source Branch : dev
+
+          Target Branch : main
+
+          Requested By : ${{ github.actor }}
+
+          Status : Awaiting Approval
+
+          Repository URL :
+          https://github.com/${{ github.repository }}
+
+          Pull Requests URL :
+          https://github.com/${{ github.repository }}/pulls
+          "
