@@ -1,4 +1,4 @@
-name: Dev To Main Auto Merge
+name: Dev To Main Pull Request
 
 on:
   push:
@@ -7,36 +7,65 @@ on:
 
 jobs:
 
-  merge:
+  create-pr:
 
     runs-on: ubuntu-latest
 
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Create Pull Request
+
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+        run: |
+
+          gh pr create \
+            --base main \
+            --head dev \
+            --title "Dev To Main Merge Request" \
+            --body "Automated PR generated from dev branch." \
+          || echo "PR already exists"
+
+
+      - name: Configure AWS Credentials
+
+        uses: aws-actions/configure-aws-credentials@v4
+
         with:
-          fetch-depth: 0
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-2
 
-      - name: Configure Git
-
-        run: |
-
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-      - name: Merge Dev To Main
+      - name: Notify Manager
 
         run: |
 
-          git fetch origin
+          aws sns publish \
+          --region ap-south-2 \
+          --topic-arn "${{ secrets.SNS_TOPIC_ARN }}" \
+          --subject "PR Approval Required" \
+          --message "
+          Repository : ${{ github.repository }}
 
-          git checkout main
+          Source Branch : dev
 
-          git merge origin/dev --no-edit
+          Target Branch : main
 
-          git push origin main
+          Requested By : ${{ github.actor }}
+
+          Status : Awaiting Approval
+
+          Repository URL :
+          https://github.com/${{ github.repository }}
+
+          Pull Requests URL :
+          https://github.com/${{ github.repository }}/pulls
+          "
