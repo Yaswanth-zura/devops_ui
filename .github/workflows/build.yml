@@ -5,7 +5,6 @@ name: UI Build And Push
 on:
   push:
     branches:
-      - dev
       - main
 
   workflow_dispatch:
