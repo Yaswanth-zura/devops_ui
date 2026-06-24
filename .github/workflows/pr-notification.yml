@@ -1,0 +1,57 @@
+name: Pull Request Notification
+
+on:
+
+  pull_request:
+
+    types:
+      - opened
+
+jobs:
+
+  notify-manager:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Configure AWS Credentials
+
+        uses: aws-actions/configure-aws-credentials@v4
+
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-2
+
+      - name: Send SNS Notification
+
+        run: |
+
+          aws sns publish \
+          --region ap-south-2 \
+          --topic-arn "${{ secrets.SNS_TOPIC_ARN }}" \
+          --subject "Pull Request Awaiting Approval" \
+          --message "
+          Repository : ${{ github.repository }}
+
+          Pull Request : #${{ github.event.pull_request.number }}
+
+          Title :
+          ${{ github.event.pull_request.title }}
+
+          Created By :
+          ${{ github.actor }}
+
+          Source Branch :
+          ${{ github.event.pull_request.head.ref }}
+
+          Target Branch :
+          ${{ github.event.pull_request.base.ref }}
+
+          Review URL :
+          ${{ github.event.pull_request.html_url }}
+
+          Status :
+          Waiting For Manager Approval
+          "
