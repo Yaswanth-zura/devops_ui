@@ -17,20 +17,19 @@ jobs:
 
     steps:
 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Create Pull Request
 
-        uses: peter-evans/create-pull-request@v7
+        env:
+          GH_TOKEN: ${{ github.token }}
 
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
 
-          branch: dev
-
-          base: main
-
-          title: Auto PR - Dev To Main
-
-          body: |
-            Automated pull request generated from dev branch.
-
-            Please review and approve before deployment.
+          gh pr create \
+            --base main \
+            --head dev \
+            --title "Dev To Main Merge Request" \
+            --body "Automated PR generated from dev branch." \
+          || echo "PR already exists"
