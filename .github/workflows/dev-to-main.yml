@@ -32,7 +32,7 @@ jobs:
             --head dev \
             --title "Dev To Main Merge Request" \
             --body "Automated PR generated from dev branch." \
-          || echo "PR already exists"
+          || echo "PR already exists in the process"
 
 
       - name: Configure AWS Credentials
