@@ -1,4 +1,4 @@
-name: Dev To Main Auto Merge
+name: Dev To Main Pull Request
 
 on:
   push:
@@ -7,36 +7,30 @@ on:
 
 jobs:
 
-  merge:
+  create-pr:
 
     runs-on: ubuntu-latest
 
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Create Pull Request
+
+        uses: peter-evans/create-pull-request@v7
 
         with:
-          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure Git
+          branch: dev
 
-        run: |
+          base: main
 
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          title: Auto PR - Dev To Main
 
-      - name: Merge Dev To Main
+          body: |
+            Automated pull request generated from dev branch.
 
-        run: |
-
-          git fetch origin
-
-          git checkout main
-
-          git merge origin/dev --no-edit
-
-          git push origin main
+            Please review and approve before deployment.
